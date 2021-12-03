@@ -1,5 +1,4 @@
 using DelimitedFiles
-using Statistics
 
 # Load data
 input = readdlm("input.txt", ' ', String, '\n');
