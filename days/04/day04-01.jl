@@ -1,16 +1,12 @@
+function stack(array_list::Vector{Matrix})
 
+end
 
 function card2matrix(card::AbstractString)
     new_card = replace(card, "\n" => " ")
     new_card = replace(new_card, "  " => " ")
-    return reshape(parse.(Int, split(new_card, " ")), (5,5))
-end
-
-function encode_matrix(mat::Array{Int64})
-    dict = Dict(
-        "counts" => zeros(Int, 10)
-
-    )
+    int_list = filter(x -> ~isempty(x), split(new_card, " "))
+    return copy(transpose(reshape(parse.(Int, int_list), (5,5))))
 end
 
 raw_input = open("input.txt") do file
@@ -20,3 +16,14 @@ end
 data = split(raw_input, "\n\n")
 
 numbers = parse.(Int, split(data[1], ","))
+
+const newaxis = [CartesianIndex()]
+matrices = vcat([card2matrix(c)[newaxis, :, :] for c in data[2:end]]...)
+
+println(size(matrices))
+
+display(matrices[1,:,:])
+println()
+
+display(matrices[end,:,:])
+println()
