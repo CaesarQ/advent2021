@@ -71,6 +71,3 @@ last_card_score = score_card(run_bingo(matrices, numbers, "last")...)
 
 println("Puzzle answer #1: $(first_card_score)")
 println("Puzzle answer #2: $(last_card_score)")
-
-#wrong: 15219 (too high)
-#correct: 14877
