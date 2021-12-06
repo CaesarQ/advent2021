@@ -37,9 +37,9 @@ function compute_num_overlaps(data::Matrix{Int64}, include_diag::Bool)
         _y2 = y2 - min_y + 1
 
         if x1 == x2
-            grid[_x1, _y1:sign(_y2- _y1):_y2] .+= 1
+            grid[_x1, _y1:sign(_y2 - _y1):_y2] .+= 1
         elseif y1 == y2
-            grid[_x1:sign(_x2- _x1):_x2, _y1] .+= 1
+            grid[_x1:sign(_x2 - _x1):_x2, _y1] .+= 1
         elseif include_diag
             slope = (y2 - y1) / (x2 - x1)
             if abs(slope) == 1
