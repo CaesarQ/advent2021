@@ -69,10 +69,10 @@ end
 
 #We thus want to find the intersection of the following lines:
 #y1 = 0.5*m*x + 0.5*N - 0.5*m*xmax
-#y2 = n*xmean - n*x
+#y2 = N*xmean - N*x
 
 #This occurs at:
-#x = (n * xmean - n/2 + m*xmax/2) / (m/2 + n)
+#x = (N * xmean - N/2 + m*xmax/2) / (m/2 + N)
 
 
 mean = sum(input) / N
