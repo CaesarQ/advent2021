@@ -81,4 +81,4 @@ slope = (2 * N - 2) / (xmax - xmin)
 
 optima = convert(Int, floor((N * mean - N/2 + slope * xmax/2) / (slope/2 + N)))
 
-println("Optimal fuel cost (part 1): $(fuel2(input, optima))")
+println("Optimal fuel cost (part 2): $(fuel2(input, optima))")
