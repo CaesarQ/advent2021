@@ -80,11 +80,20 @@ function delta2pairs(delta::Matrix{Float64}, lbl::Matrix{Int64}, tar::Int64)
 end
 
 function grid2adj(grid::Matrix{Int64}, padding::Int64, fill_value::Int64)
+    #=
+    Given an input grid, construct a directed graph, represented with an
+    adjacency matrix. x0 will point to x1 if grid[x1] > grid[x0].  Thus,
+    x1 is reachable from x0 after one step.
+
+    The output will be a sparse matrix.
+    =#
     m,n = size(grid)
     lbl = reshape(collect(1:reduce(*, size(grid))), size(grid))
     
     du, dd, dl, dr = compute_delta(grid, padding, fill_value)
     
+    #I: indices of the points in the grid
+    #J: indices of the points that are reachable from I after one step.
     #up/down change along rows (+/-1)
     Iu, Ju = delta2pairs(du[2:end, :], lbl[2:end, :], -1)
     Id, Jd = delta2pairs(dd[1:end-1, :], lbl[1:end-1, :], 1)
@@ -100,13 +109,17 @@ function grid2adj(grid::Matrix{Int64}, padding::Int64, fill_value::Int64)
 end
 
 function basin_size(
-        Emap::SparseMatrixCSC{Int64, Int64}, 
-        grid::Matrix{Int64}, 
-        seed::CartesianIndex
+        Emap::SparseMatrixCSC{Int64, Int64},
+        seed::CartesianIndex,
+        shape::Tuple{Int64, Int64}
     )
+    #=
+    Compute the size of a basin using the equilibria of a transition
+    matrix
+    =#
 
     #Encode the starting point as a vector
-    v = encode([seed], size(grid))
+    v = encode([seed], shape)
 
     #Find the equilibrium vector
     #This contains a 1 for all points reachable from the seed
@@ -133,7 +146,7 @@ A = grid2adj(grid, 1, 100)
 #connected component to which the seed belongs.  Intutively, this forms the
 #basin of attraction for the low point.
 Emap = (I + A)^(m*n)
-sizes = [basin_size(Emap, grid, s) for s in seeds]
+sizes = [basin_size(Emap, s, size(grid)) for s in seeds]
 
 println("basin product: $(reduce(*, sort(sizes)[end - 2:end]))")
 
