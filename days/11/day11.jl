@@ -76,8 +76,27 @@ function count_flashes(arr::Matrix{Int64}, num_steps::Int)
     return counts
 end
 
+function synchronize(arr::Matrix{Int64})
+    num_steps = 10000
+
+    new_arr = copy(arr)
+
+    for i in 1:num_steps
+        new_arr, flashes = step(new_arr)
+        if sum(flashes) == length(data)
+            return i
+        end
+    end
+
+    println("COULD NOT FIND SYNCHRONIZATION")
+end
+
 data = parse_input("input.txt")
 
 counts = count_flashes(data, 100)
 
 println("Total flashes: $(counts)")
+
+all_flashed = synchronize(data)
+
+println("Synchronization step: $(all_flashed)")
