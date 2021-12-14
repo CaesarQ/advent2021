@@ -17,9 +17,8 @@ function get_components(pairs::AbstractString)
     
     p, t = components[1, :], components[2, :]
     t = hcat([["$(_p[1])$(_t)", "$(_t)$(_p[2])"] for (_p, _t) in zip(p,t)]...)
-    t1, t2 = t[1,:], t[2,:]
     
-    return p, t1, t2
+    return p, t[1,:], t[2,:]
     
 end
 
