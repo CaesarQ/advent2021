@@ -40,31 +40,55 @@ end
 heuristic(start, target) = abs(target[2] - start[2]) + abs(target[1] - start[1])
 within_grid(x, shape) = 1 <= x[1] <= shape[1] && 1 <= x[2] <= shape[2]
 plus(t1::Tuple{Int64, Int64}, t2::Tuple{Int64, Int64}) = (t1[1] + t2[1], t1[2] + t2[2])
-deltas = [(0, 1), (1, 0), (-1, 0), (0, -1)]
 
-function neighbours(x, grid)
+function get_expanded(x, grid, expand)
+    #=
+    While in principle we could just create a bigger matrix using the rules
+    described, it's more memory efficient to just reindex the existing
+    sub-matrix.
+    =#
     shape = size(grid)
-    return filter(x -> within_grid(x, shape), [plus(x, δ) for δ in deltas])
+    new_x = ((x[1] - 1) % shape[1] + 1, (x[2] - 1) % shape[2] + 1)
+
+    if expand > 1
+        offset = (x[1] - 1) ÷ shape[1] + (x[2] - 1) ÷ shape[2]
+    else
+        offset = 0
+    end
+
+    risk = grid[new_x...] + offset
+
+    return (risk - 1) % 9 + 1
 end
 
-function a_star_search(grid, start, target)
+deltas = [(0, 1), (1, 0), (-1, 0), (0, -1)]
+
+#=
+Implementation of A* search
+Based on: https://www.redblobgames.com/pathfinding/a-star/introduction.html
+=#
+
+function a_star_search(grid, start, target, expand)
     cost_so_far = Dict()
     cost_so_far[start] = 0
-    
-    dims = size(grid)
+
+    shape = size(grid)
+    expanded_shape = (expand * shape[1], expand * shape[2])
     
     frontier = Pqueue()
     push_pq!(frontier, start, 0)    
     
     while length(frontier) ≠ 0
-        current, val = pop_pq!(frontier)
+        current, _ = pop_pq!(frontier)
         
         if current == target
             break
         end
         
-        for next in neighbours(current, grid)
-            new_cost = cost_so_far[current] + grid[next...]
+        for δ in deltas
+            next = plus(current, δ)
+            !within_grid(next, expanded_shape) && continue
+            new_cost = cost_so_far[current] + get_expanded(next, grid, expand)
             
             if next ∉ keys(cost_so_far) || new_cost < cost_so_far[next]
                 cost_so_far[next] = new_cost
@@ -78,5 +102,9 @@ function a_star_search(grid, start, target)
     return cost_so_far[target]
 end
 
-grid = parse_input("input.txt")
-println("Lowest risk: $(a_star_search(grid, (1,1), size(grid)))")
+subgrid = parse_input("input.txt")
+target = size(subgrid)
+println("Lowest risk (subgrid): $(a_star_search(subgrid, (1,1), target, 1))")
+
+target = (5 * target[1], 5 * target[2])
+println("Lowest risk (fullgrid): $(a_star_search(subgrid, (1,1), target, 5))")
