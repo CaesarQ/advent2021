@@ -149,6 +149,3 @@ Emap = (I + A)^(m*n)
 sizes = [basin_size(Emap, s, size(grid)) for s in seeds]
 
 println("basin product: $(reduce(*, sort(sizes)[end - 2:end]))")
-
-
-
