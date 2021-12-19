@@ -1,33 +1,41 @@
 mutable struct Tree
-    leaves::Vector{Vector{Int64}} #the info to store
+    #=
+    The paths (left/right) to reach the leaves.
+    0 indicates left, 1 indicates right
+    =#
+    paths::Vector{Vector{Int64}}
+    #=
+    The values stored at the leaves.  These correspond to regular numbers
+    =#
     vals::Vector{Int64} #the priorities for sorting
 end
 Tree() = Tree([], Int64[])  # empty tree
-Tree(t::Tree) = Tree([copy(l) for l in t.leaves], copy(t.vals))
+Tree(t::Tree) = Tree([copy(l) for l in t.paths], copy(t.vals))
 
 function shift(t::Tree, dir::Int)
+    #Takes a given tree, and shifts it down left/right
     st = Tree(t)
-    for l in st.leaves
+    for l in st.paths
         pushfirst!(l, dir)
     end
     return st
 end
 
-shift_left(t::Tree) = shift(t, -1)
+shift_left(t::Tree) = shift(t, 0)
 shift_right(t::Tree) = shift(t, 1)
 
 function str2tree(str::AbstractString)
-    path = []
+    _path = []
     depth = 0
-    leaves = []
+    paths = []
     vals = []
     for c in str
         if c == '['
-            push!(path, -1)
+            push!(_path, 0)
         elseif c == ']'
-            path = path[1:end-1]
+            _path = _path[1:end-1]
         elseif c == ','
-            push!(path, 1)
+            push!(_path, 1)
         elseif isnumeric(c)
             #=
             Assume all the numbers we are parsing are already reduced. As such,
@@ -35,11 +43,11 @@ function str2tree(str::AbstractString)
             for single digits.
             =#
             push!(vals, parse(Int, c))
-            push!(leaves, copy(path))
-            path = path[1:end-1]
+            push!(paths, copy(_path))
+            _path = _path[1:end-1]
         end
     end 
-    return Tree(leaves, vals)
+    return Tree(paths, vals)
 end
 
 function explode!(t::Tree, i::Int)
@@ -51,19 +59,19 @@ function explode!(t::Tree, i::Int)
     end
 
     insert!(t.vals, i, 0)
-    insert!(t.leaves, i, t.leaves[i][1:end-1])
+    insert!(t.paths, i, t.paths[i][1:end-1])
     
-    deleteat!(t.vals, i+1)
-    deleteat!(t.vals, i+1)
+    deleteat!(t.vals, i + 1)
+    deleteat!(t.vals, i + 1)
     
-    deleteat!(t.leaves, i+1)
-    deleteat!(t.leaves, i+1)
+    deleteat!(t.paths, i + 1)
+    deleteat!(t.paths, i + 1)
     
 end
 
 function split!(t::Tree, i::Int)
-    lchild = copy(t.leaves[i])
-    push!(lchild, -1)
+    lchild = copy(t.paths[i])
+    push!(lchild, 0)
     rchild = copy(lchild)
     pop!(rchild)
     push!(rchild, 1)
@@ -72,20 +80,20 @@ function split!(t::Tree, i::Int)
     vl, vr = floor(Int, v/2), ceil(Int, v/2)
     
     deleteat!(t.vals, i)
-    deleteat!(t.leaves, i)
+    deleteat!(t.paths, i)
     
     insert!(t.vals, i, vl)
-    insert!(t.leaves, i, lchild)
+    insert!(t.paths, i, lchild)
     
-    insert!(t.vals, i+1, vr)
-    insert!(t.leaves, i+1, rchild)
+    insert!(t.vals, i + 1, vr)
+    insert!(t.paths, i + 1, rchild)
 end
 
 function add(tl::Tree, tr::Tree)
     t = Tree(shift_left(tl))
     trr = shift_right(tr)
     
-    push!(t.leaves, trr.leaves...)
+    push!(t.paths, trr.paths...)
     push!(t.vals, trr.vals...)
 
     return t
@@ -93,7 +101,7 @@ end
 
 function reduce_num!(t::Tree)
     while true
-        i = findfirst(x->length(x) >= 5, t.leaves)
+        i = findfirst(x->length(x) >= 5, t.paths)
         if !isnothing(i)
             explode!(t, i)
             continue
@@ -115,8 +123,8 @@ function magnitude(t::Tree)
     Each leaf acquires a power of 3 every time it is the left child of a node,
     and a power of 2 every time it is the right child.
     =#
-    L = map(x -> sum(x .== -1), t.leaves)
-    R = length.(t.leaves) - L
+    R = sum.(t.paths)
+    L = length.(t.paths) - R
     w = 3 .^ L .* 2 .^ R
     return sum(w .* t.vals)
 end
